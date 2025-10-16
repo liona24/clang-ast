@@ -16,6 +16,8 @@ macro_rules! kind {
             $(
                 $kind,
             )*
+            #[cfg(feature = "kind_unknown")]
+            Unknown,
             #[allow(non_camel_case_types)]
             null,
         }
@@ -25,6 +27,8 @@ macro_rules! kind {
                 $(
                     Kind::$kind => stringify!($kind),
                 )*
+                #[cfg(feature = "kind_unknown")]
+                Kind::Unknown => "Unknown",
                 Kind::null => "null",
             }
         }
@@ -34,7 +38,12 @@ macro_rules! kind {
                 $(
                     stringify!($kind) => Ok(Kind::$kind),
                 )*
-                _other => Err(ParseKindError { _private: () }),
+                _other => {
+                    #[cfg(feature = "kind_unknown")]
+                    return Ok(Kind::Unknown);
+                    #[cfg(not(feature = "kind_unknown"))]
+                    return Err(ParseKindError { _private: () });
+                }
             }
         }
 
